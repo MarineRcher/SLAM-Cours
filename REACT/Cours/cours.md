@@ -221,6 +221,8 @@ function unComponent(){
 }
 ```
 
+verbose : pour en savoir plus
+
 # Affichage conditionnel
 
 ne pas afficher du contenu
@@ -387,6 +389,89 @@ Pour toute appli react qui contient plusieurs pages les routes sont essentiels
 
 ```bash
 npm i react-router-dom
+```
+
+```ts
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <App />
+    children: [
+      {
+        index: true,
+        element: <homePage />
+      },
+       {
+        path: /admin,
+        element:(<suspens/>
+        <admin />)
+      },
+
+    ]
+  }
+])
+
+export default function router
+```
+
+# Tuto react router
+
+https://reactrouter.com/en/main/start/tutorial
+
+**Router provider**
+founit l'accès à internet
+
+# Form
+
+````ts
+
+export function ContactPage(){
+  const [contact, setContact] =useState<Contact>({
+name: 'test',
+email: '',
+
+  })}
+
+function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+  console.log('submitted details', contact)
+}
+}
+
+<form onSubmit={handleSubmit}>
+<label htmlFor='yourName'>name</label>
+<input
+type='text'
+id='name'
+value={contact.name}
+
+>
+</form>
+
+```
+**spread sybtaxe**
+va garder en mémoire données entrées dans un form
+```ts
+ const contact = {
+  name: 'blabla',
+  age: 09,
+
+ }
+console.log(contact)
+
+const newContact = {
+  city: lyon,
+  //ajout données recup avant
+  ...contact
+}
+````
+
+## API
+
+Installer JSON server
+
+```
+npm i json-server
 ```
 
 # Sources
