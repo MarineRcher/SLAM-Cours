@@ -416,7 +416,7 @@ exports.getProductById = async (req, res) => {
 };
 ```
 
-# creer middleware de gestion d'erreurs
+## creer middleware de gestion d'erreurs
 
 https://www.youtube.com/watch?v=WXa1yzLR3hw&ab_channel=procademy
 
@@ -442,7 +442,8 @@ app.all("*", (req, res, next) => {
 });
 ```
 
-Custom error class
+### Custom error class
+
 https://www.youtube.com/watch?v=BZPrK1nQcFI&ab_channel=procademy
 
 dossier error, fichier CustomError
@@ -463,8 +464,6 @@ module.exports = CustomError;
 //const error = new customError("error", 404);
 ```
 
-
-
 dans index.js
 
 ```js
@@ -480,11 +479,85 @@ app.use((error, req, res, next) => {
 });
 
 app.all("*", (req, res, next) => {
-  const err = new Error("Can't find url on the server");
+  //const err = new Error("Can't find url on the //server");
 
-  err.status = "fail";
-  err.statusCode = 400;
-
+  //err.status = "fail";
+  // err.statusCode = 400;
+  const err = new CustomError("Can't find url on the server", 404);
   next(err);
 });
+```
+
+Créer fichier controller/errorController
+
+```js
+module.exports = (error, req, res, next) => {
+  error.statuscode = error.statuscode || 500;
+  error.status = error.status || "error";
+  res.status(error.statuscode).json({
+    status: error.statuscode,
+    message: error.message,
+  });
+};
+```
+
+Dans app.js, supprimer
+
+```js
+app.use((error, req, res, next) => {
+  error.statuscode = error.statuscode || 500;
+  error.status = error.status || "error";
+  res.status(error.statuscode).json({
+    status: error.statuscode,
+    message: error.message,
+  });
+});
+```
+
+et ajouter
+
+```js
+const globalErrorHandler = require("./controller/errorController");
+app.use(globalErrorHandler);
+```
+
+## Error in async function
+
+https://www.youtube.com/watch?v=xnedbgDoRkA&ab_channel=procademy
+
+dans un fichier dans controller
+
+```js
+const asyncErrorHandler = require('./../error/asyncErrorHandler');
+
+exports.createProduct = asyncErrorHandler(async (req, res, next) => {
+  const name = req.body.name;
+  const price = req.body.price;
+
+  // TODO: ajouter des controles...
+  const product = new products({
+    name: name,
+    price: price,
+  });
+
+  product
+    .save()
+
+    .then((result) => {
+      res.status(201).json({
+        message: "Product created successfully",
+        product: result,
+      });
+    });
+});
+```
+
+dans error/asyncErrorHandler
+
+```js
+module.exports = (func) => {
+  return (req, res, next) => {
+    func(req, res, next).catch((err) => next(err));
+  };
+};
 ```

@@ -17,7 +17,7 @@ Tel que
 ### URI (Uniform Ressource Identifer)
 
 Les ressources sont identifiables avec les URI, ceux-ci contiennent les chemins vers les ressources comme
-**"http://localhost:3003/user/rose"**
+**"http://localhost:3003/user/marine"**
 
 Cet URI permet de retrouver un user spécifique avec son nom, qui est Marine.
 Principalement les users sont identifiés par un id, qui est une clé unique.
@@ -43,18 +43,32 @@ Il s'agit du CRUD. La méthode HTTP va provoquer une reponse avec le code 200, q
 Une API REST doit utiliser différentes methode HTTP :
 
 #### GET
+
 La methode GET permet de representer les ressources demander. Cette methode doit être en mode read-only.
 
 #### POST
-La methode POST permet de créer une ressource au seins d'une base de donnée. 
+
+La methode POST permet de créer une ressource au seins d'une base de donnée.
 
 #### PUT
-La methode PUT permet de modifier une ressources en remplacent son contenue. 
+
+La methode PUT permet de modifier une ressources en remplacent son contenue.
 
 #### PATCH
+
 LA methode PATCH ressemble a la metode PUT a la différence qu'elle est traité différemment par la serveur. PATCH permet de mettre a jour les ressources. Cependant, ce procéder pour avoir des effets de bords comme la créations de nouvelles ressources. La données doit forcement etre transmis via un format commun comme le JSON ou le XML.
 
 #### DELETE
+
 La methode DELETE resulte en la suppression totale d'une ressource.
 
+## Avantages lors de la conceptions d'API
 
+### Séparation entre le client et le serveur
+
+La séparation client serveur permet d'ameliorer la sécurité en protégeant la lecture et modification des données stockée.
+De plus, en étant séparé, l'évolutivité de l'API est plus simple car il n'y a aucune ressources liée.
+
+### L'uniformisation
+
+REST permet d'uniformiser les échange entre les différentes plateformes, il devient donc simple de créer des API multiplateforme ou public.
