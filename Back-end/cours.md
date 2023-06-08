@@ -381,3 +381,110 @@ mongoose
   })
   .catch((e) => console.log("echec de connexion" + e));
 ```
+
+Product by id
+
+dans routes/product
+
+```js
+router.get("/:id", productController.getProductById);
+```
+
+controller/product
+
+```js
+exports.getProductById = async (req, res) => {
+  const productid = req.params.id;
+  products
+    .findById(productid)
+    .then((product) => {
+      // verifier si le post est correcte
+
+      //si ok
+
+      res.status(200).json({
+        message: "product found",
+        post: product,
+      });
+    })
+    .catch((error) => {
+      if (!error.statusCode) {
+        error.status = 500;
+      }
+      nextTick(err);
+    });
+};
+```
+
+# creer middleware de gestion d'erreurs
+
+https://www.youtube.com/watch?v=WXa1yzLR3hw&ab_channel=procademy
+
+index.js
+
+```js
+app.use((error, req, res, next) => {
+  error.statuscode = error.statuscode || 500;
+  error.status = error.status || "error";
+  res.status(error.statuscode).json({
+    status: error.statuscode,
+    message: error.message,
+  });
+});
+
+app.all("*", (req, res, next) => {
+  const err = new Error("Can't find url on the server");
+
+  err.status = "fail";
+  err.statusCode = 400;
+
+  next(err);
+});
+```
+
+Custom error class
+https://www.youtube.com/watch?v=BZPrK1nQcFI&ab_channel=procademy
+
+dossier error, fichier CustomError
+
+```js
+class CustomError extends Error {
+  constructor(message, statusCode) {
+    super(message);
+    this.statusCode = statusCode;
+    this.status = statusCode >= statusCode < 500 ? "fail" : "error";
+
+    this.isOperationnal = true;
+
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+module.exports = CustomError;
+//const error = new customError("error", 404);
+```
+
+
+
+dans index.js
+
+```js
+const customError = require("./error/CustomError");
+
+app.use((error, req, res, next) => {
+  error.statuscode = error.statuscode || 500;
+  error.status = error.status || "error";
+  res.status(error.statuscode).json({
+    status: error.statuscode,
+    message: error.message,
+  });
+});
+
+app.all("*", (req, res, next) => {
+  const err = new Error("Can't find url on the server");
+
+  err.status = "fail";
+  err.statusCode = 400;
+
+  next(err);
+});
+```
