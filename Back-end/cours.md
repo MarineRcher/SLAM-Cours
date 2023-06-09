@@ -561,3 +561,592 @@ module.exports = (func) => {
   };
 };
 ```
+
+# REPO API NODE JS COURS
+
+Dépendances installées
+```json
+ "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "express-validator": "^5.3.0",
+    "jsonwebtoken": "^8.3.0",
+    "mongoose": "^5.3.2",
+    "multer": "^1.4.0"
+```
+## Gestion d'erreur
+https://expressjs.com/en/guide/error-handling.html
+
+`readFile` : lecture du fichier
+
+`.trim` : coupe s'il y a des espaces en trop
+
+`timestamps`: est un format de mesure de date qui représente le nombre de secondes écoulées depuis le 1er janvier 1970 
+
+## Requetes
+Exemple utilisé: Posts
+
+Dans app.js
+```js
+const express = require('express');
+const bodyParser = require('body-parser');
+
+//route
+const feedRoutes = require('./routes/feed');
+
+const app = express();
+
+
+app.use('/feed', feedRoutes);
+
+mongoose
+  .connect(
+    'copiez-votre-mongo-connection-string-ici'
+  )
+  .then(result => {
+    app.listen(8080);
+  })
+  .catch(err => console.log(err));
+
+```
+
+
+### GET all
+
+Dans routes 
+```js
+const express = require('express');
+
+const feedController = require('../controllers/feed');
+
+
+
+const router = express.Router();
+
+// GET /feed/posts
+
+router.get('/posts', feedController.getPosts);
+
+module.exports = router;
+```
+
+Dans controller
+```js
+const fs = require('fs');
+const path = require('path');
+
+const { validationResult } = require('express-validator/check');
+
+const Post = require('../models/post');
+
+exports.getPosts = (req, res, next) => {
+  const currentPage = req.query.page || 1;
+  const perPage = 2;
+  let totalItems;
+  Post.find()
+    .countDocuments()
+    .then(count => {
+      totalItems = count;
+      return Post.find()
+        .skip((currentPage - 1) * perPage)
+        .limit(perPage);
+    })
+    .then(posts => {
+      res
+        .status(200)
+        .json({
+          message: 'Fetched posts successfully.',
+          posts: posts,
+          totalItems: totalItems
+        });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+```
+
+Dans model
+```js
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+const postSchema = new Schema(
+  {
+    title: {
+      type: String,
+      required: true
+    },
+    imageUrl: {
+      type: String,
+      required: true
+    },
+    content: {
+      type: String,
+      required: true
+    },
+    creator: {
+      type: Object,
+      required: String
+    }
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model('Post', postSchema);
+
+```
+### Get by id
+
+Le model est le meme pour tous.
+Dans app.js ca ne chanche pas aussi 
+
+Dans router
+```js
+router.get('/post/:postId', isAuth, feedController.getPost);
+```
+```js
+exports.getPost = (req, res, next) => {
+  const postId = req.params.postId;
+  Post.findById(postId)
+    .then(post => {
+      if (!post) {
+        const error = new Error('Could not find post.');
+        error.statusCode = 404;
+        throw error;
+      }
+      res.status(200).json({ message: 'Post fetched.', post: post });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+```
+
+### Create
+Dans router
+```js
+router.post(
+  '/post',
+  isAuth,
+  [
+    body('title')
+      .trim()
+      .isLength({ min: 5 }),
+    body('content')
+      .trim()
+      .isLength({ min: 5 })
+  ],
+  feedController.createPost
+);
+```
+
+Dans controller
+```js
+
+exports.createPost = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error('Validation failed, entered data is incorrect.');
+    error.statusCode = 422;
+    throw error;
+  }
+  if (!req.file) {
+    const error = new Error('No image provided.');
+    error.statusCode = 422;
+    throw error;
+  }
+  const imageUrl = req.file.path;
+  const title = req.body.title;
+  const content = req.body.content;
+  const post = new Post({
+    title: title,
+    content: content,
+    imageUrl: imageUrl,
+    creator: { name: 'Sciences-u' }
+  });
+  post
+    .save()
+    .then(result => {
+      res.status(201).json({
+        message: 'Post created successfully!',
+        post: result
+      });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+```
+
+### PUT
+
+Dans route
+```js 
+router.put(
+  '/post/:postId',
+  isAuth,
+  [
+    body('title')
+      .trim()
+      .isLength({ min: 5 }),
+    body('content')
+      .trim()
+      .isLength({ min: 5 })
+  ],
+  feedController.updatePost
+);
+```
+
+Controller :
+```js
+exports.updatePost = (req, res, next) => {
+  const postId = req.params.postId;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error('Validation failed, entered data is incorrect.');
+    error.statusCode = 422;
+    throw error;
+  }
+  const title = req.body.title;
+  const content = req.body.content;
+  let imageUrl = req.body.image;
+  if (req.file) {
+    imageUrl = req.file.path;
+  }
+  if (!imageUrl) {
+    const error = new Error('No file picked.');
+    error.statusCode = 422;
+    throw error;
+  }
+  Post.findById(postId)
+    .then(post => {
+      if (!post) {
+        const error = new Error('Could not find post.');
+        error.statusCode = 404;
+        throw error;
+      }
+      if (imageUrl !== post.imageUrl) {
+        clearImage(post.imageUrl);
+      }
+      post.title = title;
+      post.imageUrl = imageUrl;
+      post.content = content;
+      return post.save();
+    })
+    .then(result => {
+      res.status(200).json({ message: 'Post updated!', post: result });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+```
+
+### DELETE
+
+route :
+```js
+router.delete('/post/:postId', isAuth, feedController.deletePost);
+
+```
+
+controller :
+```js
+exports.updatePost = (req, res, next) => {
+  const postId = req.params.postId;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error('Validation failed, entered data is incorrect.');
+    error.statusCode = 422;
+    throw error;
+  }
+  const title = req.body.title;
+  const content = req.body.content;
+  let imageUrl = req.body.image;
+  if (req.file) {
+    imageUrl = req.file.path;
+  }
+  if (!imageUrl) {
+    const error = new Error('No file picked.');
+    error.statusCode = 422;
+    throw error;
+  }
+  Post.findById(postId)
+    .then(post => {
+      if (!post) {
+        const error = new Error('Could not find post.');
+        error.statusCode = 404;
+        throw error;
+      }
+      if (imageUrl !== post.imageUrl) {
+        clearImage(post.imageUrl);
+      }
+      post.title = title;
+      post.imageUrl = imageUrl;
+      post.content = content;
+      return post.save();
+    })
+    .then(result => {
+      res.status(200).json({ message: 'Post updated!', post: result });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+
+const clearImage = filePath => {
+  filePath = path.join(__dirname, '..', filePath);
+  fs.unlink(filePath, err => console.log(err));
+};
+```
+
+### image
+
+app.js :
+```js
+const multer = require('multer');
+const path = require('path');
+
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'images');
+  },
+  filename: (req, file, cb) => {
+    cb(null, new Date().toISOString() + '-' + file.originalname);
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === 'image/png' ||
+    file.mimetype === 'image/jpg' ||
+    file.mimetype === 'image/jpeg'
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
+// app.use(bodyParser.urlencoded()); // x-www-form-urlencoded <form>
+app.use(bodyParser.json()); // application/json
+app.use(
+  multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')
+);
+app.use('/images', express.static(path.join(__dirname, 'images')));
+```
+
+## middleware
+
+### error handling
+app :
+```js
+app.use((error, req, res, next) => {
+  console.log(error);
+  const status = error.statusCode || 500;
+  const message = error.message;
+  res.status(status).json({ message: message });
+});
+```
+
+## User & authentification
+
+Model user :
+```js
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+const userSchema = new Schema({
+  email: {
+    type: String,
+    required: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: String,
+    default: 'I am new!'
+  },
+  posts: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Post'
+    }
+  ]
+});
+
+module.exports = mongoose.model('User', userSchema);
+```
+routes/auth
+```js
+const express = require('express');
+const { body } = require('express-validator/check');
+
+const User = require('../models/user');
+const authController = require('../controllers/auth');
+
+const router = express.Router();
+
+router.put(
+  '/signup',
+  [
+    body('email')
+      .isEmail()
+      .withMessage('Please enter a valid email.')
+      .custom((value, { req }) => {
+        return User.findOne({ email: value }).then(userDoc => {
+          if (userDoc) {
+            return Promise.reject('E-Mail address already exists!');
+          }
+        });
+      })
+      .normalizeEmail(),
+    body('password')
+      .trim()
+      .isLength({ min: 5 }),
+    body('name')
+      .trim()
+      .not()
+      .isEmpty()
+  ],
+  authController.signup
+);
+
+router.post('/login', authController.login);
+
+module.exports = router;
+```
+controller :
+```js
+const { validationResult } = require('express-validator/check');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const User = require('../models/user');
+
+exports.signup = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error('Validation failed.');
+    error.statusCode = 422;
+    error.data = errors.array();
+    throw error;
+  }
+  const email = req.body.email;
+  const name = req.body.name;
+  const password = req.body.password;
+  bcrypt
+    .hash(password, 12)
+    .then(hashedPw => {
+      const user = new User({
+        email: email,
+        password: hashedPw,
+        name: name
+      });
+      return user.save();
+    })
+    .then(result => {
+      res.status(201).json({ message: 'User created!', userId: result._id });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+
+exports.login = (req, res, next) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  let loadedUser;
+  User.findOne({ email: email })
+    .then(user => {
+      if (!user) {
+        const error = new Error('A user with this email could not be found.');
+        error.statusCode = 401;
+        throw error;
+      }
+      loadedUser = user;
+      return bcrypt.compare(password, user.password);
+    })
+    .then(isEqual => {
+      if (!isEqual) {
+        const error = new Error('Wrong password!');
+        error.statusCode = 401;
+        throw error;
+      }
+      const token = jwt.sign(
+        {
+          email: loadedUser.email,
+          userId: loadedUser._id.toString()
+        },
+        'somesupersecretsecret',
+        { expiresIn: '1h' }
+      );
+      res.status(200).json({ token: token, userId: loadedUser._id.toString() });
+    })
+    .catch(err => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+};
+```
+app.js
+```js
+app.use('/auth', authRoutes);
+const authRoutes = require('./routes/auth');
+```
+
+middleware/auth
+```js
+const jwt = require('jsonwebtoken');
+
+module.exports = (req, res, next) => {
+  const authHeader = req.get('Authorization');
+  if (!authHeader) {
+    const error = new Error('Not authenticated.');
+    error.statusCode = 401;
+    throw error;
+  }
+  const token = authHeader.split(' ')[1];
+  let decodedToken;
+  try {
+    decodedToken = jwt.verify(token, 'somesupersecretsecret');
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+  if (!decodedToken) {
+    const error = new Error('Not authenticated.');
+    error.statusCode = 401;
+    throw error;
+  }
+  req.userId = decodedToken.userId;
+  next();
+};
+```
