@@ -965,9 +965,48 @@ app.use((error, req, res, next) => {
 });
 ```
 
-## User & authentification
 
-Model user :
+# JWT
+Permet l'échangé sécurisé de jetons entre plusieurs parties
+
+```
+npm install jsonwebtoken --save
+```
+app.js
+```js
+app.use('/auth', authRoutes);
+const authRoutes = require('./routes/auth');
+```
+
+Dans middleware/is-auth.js
+```js
+const jwt = require('jsonwebtoken');
+module.exports = (req, res, next) => {
+  const authHeader = req.get('Authorization');
+  if (!authHeader) {
+    const error = new Error('Not authenticated.');
+    error.statusCode = 401;
+    throw error;
+  }
+  const token = authHeader.split(' ')[1];
+  let decodedToken;
+  try {
+    decodedToken = jwt.verify(token, 'somesupersecretsecret');
+  } catch (err) {
+    err.statusCode = 500;
+    throw err;
+  }
+  if (!decodedToken) {
+    const error = new Error('Not authenticated.');
+    error.statusCode = 401;
+    throw error;
+  }
+  req.userId = decodedToken.userId;
+  next();
+};
+```
+
+models/user.js
 ```js
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
@@ -999,6 +1038,7 @@ const userSchema = new Schema({
 
 module.exports = mongoose.model('User', userSchema);
 ```
+
 routes/auth
 ```js
 const express = require('express');
@@ -1038,7 +1078,7 @@ router.post('/login', authController.login);
 
 module.exports = router;
 ```
-controller :
+controller/auth
 ```js
 const { validationResult } = require('express-validator/check');
 const bcrypt = require('bcryptjs');
@@ -1116,37 +1156,25 @@ exports.login = (req, res, next) => {
     });
 };
 ```
-app.js
-```js
-app.use('/auth', authRoutes);
-const authRoutes = require('./routes/auth');
+
+
+# Swagger
+
+Comme Postman
+Swagger est un langage de description d'interface permettant de décrire des API exprimées à l'aide de JSON.
+
+Swagger est utilisé avec toute une série d'outils logiciels open source pour concevoir, créer, documenter et utiliser des services Web.
+
+Swagger inclut des outils de documentation automatisée, de génération de code (dans de nombreux langages de programmation) et de génération de cas de test.
+
+Install
+
+swaggerJsDoc
+```bash
+npm install swagger-jsdoc --save
+```
+swagger ui express
+```bash
+npm i swagger-ui-express
 ```
 
-middleware/auth
-```js
-const jwt = require('jsonwebtoken');
-
-module.exports = (req, res, next) => {
-  const authHeader = req.get('Authorization');
-  if (!authHeader) {
-    const error = new Error('Not authenticated.');
-    error.statusCode = 401;
-    throw error;
-  }
-  const token = authHeader.split(' ')[1];
-  let decodedToken;
-  try {
-    decodedToken = jwt.verify(token, 'somesupersecretsecret');
-  } catch (err) {
-    err.statusCode = 500;
-    throw err;
-  }
-  if (!decodedToken) {
-    const error = new Error('Not authenticated.');
-    error.statusCode = 401;
-    throw error;
-  }
-  req.userId = decodedToken.userId;
-  next();
-};
-```

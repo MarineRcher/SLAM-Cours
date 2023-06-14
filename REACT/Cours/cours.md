@@ -223,6 +223,11 @@ function unComponent(){
 
 verbose : pour en savoir plus
 
+# useContext
+
+pour variables mises à jours
+-> panier e-com
+
 # Affichage conditionnel
 
 ne pas afficher du contenu
@@ -243,6 +248,17 @@ Plutot que
 ```ts
 const [visible, setVisible] = useState(null);
 ```
+
+# Provider
+
+Garde en mémoire des variables (ex: formulaires sur plusieurs pages, panier)
+-> utile quand on passe les memes props sur plusieurs fichiers
+permet de mettre à jour props sur autres fichiers
+
+créer fichier context.tsx
+créer contexte avec React.createContext()
+exporter component qui retourne une balise
+<context.Provider value={}> {children} </>
 
 # Promise
 
@@ -466,13 +482,11 @@ const newContact = {
 }
 ````
 
-## API
+# Resume
 
-Installer JSON server
+model -> Schema
 
-```
-npm i json-server
-```
+
 
 # Sources
 
@@ -508,9 +522,3 @@ Tailwind CSS Intellisense
 # Pratique
 
 https://github.com/type-challenges/type-challenges
-
-Dossier Exercices
-
-```
-
-```
