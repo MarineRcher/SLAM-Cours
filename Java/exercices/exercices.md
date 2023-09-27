@@ -50,7 +50,7 @@ Ajouter les deux classes Livre et Dvd héritant de la classe Article.
 
 Un livre possède un numéro ISBN, contient un certain nombre de pages et a été écrit par un auteur, un DVD a une certaine durée et a été produit par un réalisateur.
 
-Ajouter les attributs nécessaires aux classes Livre et Dvd pour avoir le nom de l’auteur ou du réalisateur. Tester ensuite ler fonctionnement de ces deux nouvelles classes.
+Ajouter les attributs nécessaires aux classes Livre et Dvd pour avoir le nom de l’auteur ou du réalisateur. Tester ensuite ler fonctionnement de ces deux nouvelles classes. 
 
 Exercice 3
 

@@ -190,3 +190,189 @@ public class Exercice4 {
 
 Créer une classe représentant un article d’un magasin de vente par correspondance. Un article est caractérisé par sa référence, sa désignation, son prix. Créer ensuite une méthode main permettant de tester le bon fonctionnement de la classe précédente. 
 
+Dans le fichier Article.java
+
+```java
+public class Article {
+    private String reference;
+    private String designation;
+    private double prixHT;
+
+    public Article(String reference, String designation, double prixHT) {
+        this.reference = reference;
+        this.designation = designation;
+        this.prixHT = prixHT;
+    }
+
+    public String getReference() {
+        return reference;
+    }
+
+    public void setReference(String reference) {
+        this.reference = reference;
+    }
+
+    public String getDesignation() {
+        return designation;
+    }
+
+    public void setDesignation(String designation) {
+        this.designation = designation;
+    }
+
+    public double getPrixHT() {
+        return prixHT;
+    }
+
+    public void setPrixHT(double prixHT) {
+        this.prixHT = prixHT;
+    }
+}
+```
+
+Dans le fichier Main.java
+
+```java 
+
+public class Main {
+
+    public static void main(String[] args) {
+
+    Article a1 = new Article("A1", "Article 1", 10.0);
+  
+    }
+}
+```
+
+## Exercice 2
+
+
+Ajouter les deux classes Livre et Dvd héritant de la classe Article.
+
+Un livre possède un numéro ISBN, contient un certain nombre de pages et a été écrit par un auteur, un DVD a une certaine durée et a été produit par un réalisateur.
+
+Ajouter les attributs nécessaires aux classes Livre et Dvd pour avoir le nom de l’auteur ou du réalisateur. Tester ensuite ler fonctionnement de ces deux nouvelles classes. 
+
+
+La classe Livre.java
+
+```java
+public class Livre extends Article {
+
+    private int numeroISBN;
+    private Personne auteur;
+
+    int nombrePages;
+
+
+
+    public Livre(String reference, String designation, double prixHT, int numeroISBN, Personne auteur, int nombrePages)
+    {
+        // super() is a call to the constructor of the parent class
+        super(reference, designation, prixHT);
+        this.numeroISBN = numeroISBN;
+        this.auteur = auteur;
+    }
+
+    public Personne getAuteur() {
+        return auteur;
+    }
+}
+```
+
+La classe Dvd.java
+
+```java 
+public class Dvd extends Article{
+    private int duree;
+    private String realisateur;
+    public Dvd(String reference, String designation, double prixHT, int duree, String realisateur) {
+        super(reference, designation, prixHT);
+        this.duree = duree;
+        this.realisateur = realisateur;
+    }
+
+    public String getRealisateur() {
+        return realisateur;
+    }
+}
+```
+
+main.java
+
+```java 
+
+public class Main {
+
+    public static void main(String[] args) {
+
+    String nom = new String("Dupont");
+
+
+    Article a1 = new Article("A1", "Article 1", 10.0);
+    Personne jean = new Personne("Dupont", "Jean");
+    Livre l1 = new Livre("L1", "Livre 1", 20.0, 123456789, jean, 100);
+
+    }
+}
+```
+
+## Exercice 3
+
+Modifier les classes Livre et Dvd pour avoir disponibles les informations suivantes concernant l’auteur ou le réalisateur :
+
+son nom
+son prénom
+sa date de naissance
+Indice : les auteurs et les réalisateurs sont des personnes.
+
+La classe Personne.java
+
+```java
+public class Personne {
+    private String nom;
+    private String prenom;
+
+    private static int nombrePersonnes = 0;
+
+
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+    public String getPrenom() {
+        return prenom;
+    }
+
+    public void setPrenom(String prenom) {
+        this.prenom = prenom;
+    }
+
+    public Personne(String nom, String prenom) {
+        this.nom = nom;
+        this.prenom = prenom;
+    }
+
+    public void afficherNomComplet() {
+        System.out.println(this.prenom + " " + this.nom);
+    }
+}
+```
+
+
+## Exercice 4
+
+Modifier le code précédent pour pouvoir obtenir rapidement la liste des articles concernant un auteur ou un réalisateur.
+
+Pour les personnes ajouter un champ de type ArrayList
+
+dans lequel on stockera chaque article concernant cette personne. (Livre ou dvd)
+    
+    ```java
+   
+    
+    ```
