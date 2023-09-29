@@ -2,7 +2,7 @@ package MariaDB;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.*;
-
+import java.util.Scanner;
 
 public class Mariadb {
     public static void main(String[] args) {
@@ -19,10 +19,12 @@ public class Mariadb {
 
             // Exécution de la requête SQL
             try (Statement statement = connection.createStatement();) {
-
-                String requete = "SELECT * FROM Clients";
+                Scanner in = new Scanner(System.in);
+                System.out.println("Entrez votre requete SQL :");
+                String requete = in.nextLine();
+                //String requete = "SELECT * FROM Clients";
                 ResultSet resultSet = statement.executeQuery(requete);
-
+                in.close();
                 // Ouverture du fichier de sortie
                 try (FileWriter writer = new FileWriter("./src/MariaDB/resultat.txt")) {
                     // Écriture des en-têtes de colonnes
